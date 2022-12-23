@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 from PIL import Image
 
 import os
-import glob
 
 
 def fit_to_resnet(x, size=(64, 64)):
@@ -35,6 +34,8 @@ def get_mnist(path=None):
     
     # Reshape
     train_data = train_data.reshape(42000, 1, 28, 28)
+
+    print('Fetched data')
     
     return train_data, train_label
 
