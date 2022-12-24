@@ -1,5 +1,5 @@
-import copy
 import time
+import wandb
 
 import numpy as np
 import torch
@@ -19,6 +19,9 @@ def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs
     best_loss = 1e+10
 
     print(model.inplanes)
+
+    # Initialize i to remove warnings
+    i = -1
 
     # Training loop begins
     for epoch in range(epochs):
@@ -52,9 +55,12 @@ def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs
 
             epoch_avg_loss += loss.item()
 
+        train_acc = (correct / total) * 100
+        train_loss = epoch_avg_loss / i
+
         print('Training:')
-        print(f'Accuracy: {((correct / total) * 100):.3f}')
-        print(f'Loss: {(epoch_avg_loss / 41):.3f}')
+        print(f'Accuracy: {train_acc:.3f}')
+        print(f'Loss: {train_loss:.3f}')
 
         epoch_avg_loss = 0.
         correct = 0
@@ -80,12 +86,25 @@ def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs
 
             epoch_avg_loss += loss.item()
 
+        val_acc = (correct / total) * 100
+        val_loss = epoch_avg_loss / i
         print('Validation')
-        print(f'Accuracy: {((correct / total) * 100):.3f}')
-        print(f'Loss: {(epoch_avg_loss / 41):.3f}')
+        print(f'Accuracy: {val_acc:.3f}')
+        print(f'Loss: {val_loss:.3f}')
+
+        wandb.log({
+            'Training Accuracy': train_acc,
+            'Training Loss': train_loss,
+            'Validation Accuracy': val_acc,
+            'Validation Loss': val_loss
+        })
 
 
 def main():
+    print('Initializing Wandb')
+    wandb.init(project='Math OCR')
+
+
     print(torch.__version__)
     device = 'cuda' if torch.cuda.is_available() else 'mps'
 
