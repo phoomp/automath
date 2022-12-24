@@ -7,7 +7,7 @@ from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 from torchvision.models import resnet50
 
-from fetch_dataset import get_mnist
+from fetch_dataset import get_mnist, get_az
 
 
 def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs=500):
@@ -87,13 +87,28 @@ def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs
 
 def main():
     print(torch.__version__)
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'mps'
 
-    x, y = get_mnist()
-    print(f'Shape of x: {x.shape}')
+    x_mnist, y_mnist = get_mnist()
+    x_az, y_az = get_az()
+
+    print(f'Shape of x_mnist: {x_mnist.shape}')
+    print(f'Shape of x_az: {x_az.shape}')
+
+    x = np.concatenate([x_mnist, x_az], axis=0)
+    y = np.concatenate([y_mnist, y_az], axis=0)
+
     n_elements = x.shape[0]
     validation_split = 0.2
     n_train = int(n_elements * validation_split)
+    print(f'Taking {n_elements - n_train} elements for training, leaving {n_train} for validation')
+
+    perm = np.arange(n_elements)
+    np.random.shuffle(perm)
+    x = x[perm]
+    y = y[perm]
+
+    print(f'Shuffle permutation: {perm}')
 
     x_train = x[n_train:]
     y_train = y[n_train:]
@@ -101,7 +116,7 @@ def main():
     x_train = torch.Tensor(x_train).to(device)
     y_train = torch.Tensor(y_train).to(device)
     train_ds = TensorDataset(x_train, y_train)
-    train_loader = DataLoader(train_ds, batch_size=1024)
+    train_loader = DataLoader(train_ds, batch_size=128)
 
     x_test = x[:n_train]
     y_test = y[:n_train]
@@ -109,13 +124,12 @@ def main():
     x_test = torch.Tensor(x_test).to(device)
     y_test = torch.Tensor(y_test).to(device)
     test_ds = TensorDataset(x_test, y_test)
-    test_loader = DataLoader(test_ds, batch_size=512)
+    test_loader = DataLoader(test_ds, batch_size=64)
 
-    n_classes = 10
+    n_classes = 36
 
     model = resnet50()
     model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-    # model.inplanes = 28
     in_f = model.fc.in_features
     model.fc = nn.Linear(in_f, n_classes)
 
