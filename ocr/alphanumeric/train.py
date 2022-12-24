@@ -29,7 +29,7 @@ def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs
         correct = 0
         total = 0
         print(f'Epoch {epoch}')
-        for i, (img, label) in enumerate(test_loader):
+        for i, (img, label) in enumerate(train_loader):
             label = label.type(torch.LongTensor)
             img = img.to(device)
             label = label.to(device)
