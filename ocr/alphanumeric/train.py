@@ -1,5 +1,6 @@
 import time
 import wandb
+import argparse
 
 import numpy as np
 import torch
@@ -10,7 +11,13 @@ from torchvision.models import resnet50
 from fetch_dataset import get_mnist, get_az
 
 
-def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs=500):
+# Command line args
+parser = argparse.ArgumentParser()
+
+parser.add_argument('run_name', type=str)
+
+
+def train_model(run_name, model, train_loader, test_loader, loss_fn, optim, device, epochs=500):
     model = model.to(device)
     start_time = time.perf_counter()
 
@@ -99,11 +106,16 @@ def train_model(model, train_loader, test_loader, loss_fn, optim, device, epochs
             'Validation Loss': val_loss
         })
 
+        torch.save(model, f'models/{run_name}-{epoch}.pth')
+        print('---------')
+
 
 def main():
-    print('Initializing Wandb')
-    wandb.init(project='Math OCR')
+    args = parser.parse_args()
+    run_name = args.run_name
 
+    print(f'Initializing Wandb run with name {run_name}')
+    wandb.init(project='Math OCR', name=run_name)
 
     print(torch.__version__)
     device = 'cuda' if torch.cuda.is_available() else 'mps'
@@ -155,7 +167,7 @@ def main():
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
 
-    train_model(model, train_loader, test_loader, loss_fn, optimizer, device)
+    train_model(run_name, model, train_loader, test_loader, loss_fn, optimizer, device)
 
 
 if __name__ == '__main__':
