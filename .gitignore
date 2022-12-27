@@ -1,2 +1,14 @@
 /ocr/dataset_generation/signs/
 /ocr/dataset_generation/a_z.csv
+/ocr/handwritten_aida/raw/
+/ocr/handwritten_aida/labels.jpg
+/ocr/handwritten_aida/train_batch0.jpg
+/ocr/handwritten_aida/train_batch2.jpg
+/ocr/handwritten_aida/train_batch1.jpg
+/ocr/handwritten_aida/yolov5s.pt
+/ocr/handwritten_aida/yolov6s.pt
+/ocr/handwritten_aida/.ipynb_checkpoints/
+/ocr/alphanumeric/wandb/
+/ocr/alphanumeric/handwritten_az.csv
+/ocr/alphanumeric/test.csv
+/ocr/alphanumeric/train.csv
