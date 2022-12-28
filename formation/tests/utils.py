@@ -55,10 +55,7 @@ class Dataset(torch.utils.data.Dataset):
         with open(ds_path, 'r') as txt:
             for line in txt:
                 line = line.replace('"', '')
-                if is_dialogue(line):
-                    self.lines.append(line)
-                else:
-                    continue
+                self.lines.append(lines)
 
         print(len(self.lines))
         print(self.lines[-1])
