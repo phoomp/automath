@@ -19,11 +19,14 @@ TRAIN_SPLIT = 0.8
 parser = argparse.ArgumentParser()
 
 parser.add_argument('ds_path', type=str)
+parser.add_argument('device', type=int)
 parser.add_argument('seed', type=int)
+
 parser.add_argument('batch_size', type=int)
+parser.add_argument('epochs', type=int)
 
 
-def train(device, model, batch_size, train_loader, test_loader, max_seq_len, epochs, loss_fn, optimizer):
+def train(device, model, batch_size, train_loader, test_loader, epochs, loss_fn, optimizer):
     # BEGIN EPOCH
     for epoch in range(epochs):
         print(f'BEGIN EPOCH {epoch + 1} --------------------------------------------------------\n')
@@ -70,12 +73,17 @@ def train(device, model, batch_size, train_loader, test_loader, max_seq_len, epo
 
         print(f'Validation Loss: {torch.tensor(losses).mean():.3f}')
 
+        torch.save(model, f'models/end_e_{epoch}.pt')
+
 
 def main():
     args = parser.parse_args()
     ds_path = args.ds_path
+    cuda_idx = args.device
+
     seed = args.seed
     batch_size = args.batch_size
+    epochs = args.epochs
 
     ds = Dataset(ds_path)
     train_size = round(len(ds) * TRAIN_SPLIT)
@@ -87,7 +95,10 @@ def main():
     print(f'Length of dataset: {len(ds)}')
 
     # Define our device
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = f'cuda:{cuda_idx}' if torch.cuda.is_available() else 'cpu'
+    print(f'Using device {device}')
+    if device == 'cpu':
+        print(f'WARNING: Ignoring cuda_idx ({cuda_idx}) because CUDA is not available.')
 
     # Create our model
     model = Model(ds).to(device)
@@ -97,7 +108,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     # Train
-    train(device, model, batch_size, train_loader, val_loader, ds.max_seq_len, 10, loss_fn, optimizer)
+    train(device, model, batch_size, train_loader, val_loader, epochs, loss_fn, optimizer)
 
     # Try out the model
 
