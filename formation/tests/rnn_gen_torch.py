@@ -18,6 +18,10 @@ parser = argparse.ArgumentParser()
 def main():
     ds = Dataset('alllines.txt')
 
+    print(f'Length of dataset: {len(ds)}')
+
+    print(f'Getitem: {ds.__getitem__(0)}')
+
 
 if __name__ == '__main__':
     main()

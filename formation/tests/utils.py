@@ -1,5 +1,11 @@
+from collections import Counter, OrderedDict
+
 import torch
 from torch import nn
+from torch.utils.data import DataLoader
+import torchtext
+
+import numpy as np
 
 
 class Model(nn.Module):
@@ -55,15 +61,44 @@ class Dataset(torch.utils.data.Dataset):
         with open(ds_path, 'r') as txt:
             for line in txt:
                 line = line.replace('"', '')
-                self.lines.append(lines)
+                line = line.replace('\t', '')
+                line = line.replace('\n', '')
+                self.lines.append(line)
 
         print(len(self.lines))
         print(self.lines[-1])
 
+        # Prepare dataset
+        self.s_lines = [list(s) for s in self.lines]
+        self.max_seq_len = max([len(x) for x in self.s_lines])
+        print(f'Max sequence length: {self.max_seq_len}')
+
+        # Build vocabs
+        v = sorted(set(''.join(self.lines)))
+        self.vocab = {}
+        for char in v:
+            self.vocab[char] = len(self.vocab)
+
+        print(f'Character list: {self.vocab}')
+
     def __len__(self):
-        pass
+        return len(self.s_lines)
+
+    def get_tokenized_tensor(self, line):
+        tensor = torch.zeros(len(line) - 1, 1, len(self.vocab))
+
+        for i, char in enumerate(line[:-1]):
+            idx = self.vocab[char]
+            tensor[i, 0, idx] = 1
+
+        return tensor
+
+    def get_tokenized_label(self, x):
+        tensor = torch.zeros()
 
     def __getitem__(self, idx):
-        if not torch.is_tensor(idx):
-            idx = torch.Tensor(idx)
+        selected = self.s_lines[idx]
+        feature = torch.Tensor(self.get_tokenized_tensor(selected))
+        labels = torch.Tensor(self.get_tokenized_label(selected))
 
+        return feature, labels
